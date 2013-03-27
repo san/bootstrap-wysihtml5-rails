@@ -4701,6 +4701,7 @@ wysihtml5.dom.observe = function(element, eventNames, handler) {
     }
   };
 };
+
 /**
  * HTML Sanitizer
  * Rewrites the HTML based on given rules
@@ -4813,10 +4814,9 @@ wysihtml5.dom.parse = (function() {
     var oldNodeType     = oldNode.nodeType,
         oldChilds       = oldNode.childNodes,
         oldChildsLength = oldChilds.length,
-        method          = NODE_TYPE_MAPPING[oldNodeType],
-        i               = 0,
         newNode,
-        newChild;
+        method          = NODE_TYPE_MAPPING[oldNodeType],
+        i               = 0;
     
     newNode = method && method(oldNode);
     
@@ -4845,6 +4845,7 @@ wysihtml5.dom.parse = (function() {
   function _handleElement(oldNode) {
     var rule,
         newNode,
+        endTag,
         tagRules    = currentRules.tags,
         nodeName    = oldNode.nodeName.toLowerCase(),
         scopeName   = oldNode.scopeName;
@@ -5062,7 +5063,7 @@ wysihtml5.dom.parse = (function() {
   // ------------ attribute checks ------------ \\
   var attributeCheckMethods = {
     url: (function() {
-      var REG_EXP = /^https?:\/\//i;
+      var REG_EXP = /^(https?:\/\/|mailto:)/i;
       return function(attributeValue) {
         if (!attributeValue || !attributeValue.match(REG_EXP)) {
           return null;
@@ -5073,8 +5074,8 @@ wysihtml5.dom.parse = (function() {
       };
     })(),
 
-    src: (function() {
-      var REG_EXP = /^(\/|https?:\/\/)/i;
+    absolute_path: (function() {
+      var REG_EXP = /^\/[\/a-z0-9%?._\-]*$/i;
       return function(attributeValue) {
         if (!attributeValue || !attributeValue.match(REG_EXP)) {
           return null;
@@ -5086,12 +5087,13 @@ wysihtml5.dom.parse = (function() {
     })(),
 
     href: (function() {
-      var REG_EXP = /^(\/|https?:\/\/|mailto:)/i;
+      var HTTP_REG_EXP = /^https?:\/\//i;
+      var APATH_REG_EXP = /^\/[\/a-z0-9%?._\-]*$/i;
       return function(attributeValue) {
-        if (!attributeValue || !attributeValue.match(REG_EXP)) {
+        if (!attributeValue || (!attributeValue.match(HTTP_REG_EXP) && !attributeValue.match(APATH_REG_EXP))) {
           return null;
         }
-        return attributeValue.replace(REG_EXP, function(match) {
+        return attributeValue.replace(HTTP_REG_EXP, function(match) {
           return match.toLowerCase();
         });
       };
@@ -5172,6 +5174,7 @@ wysihtml5.dom.parse = (function() {
   
   return parse;
 })();
+
 /**
  * Checks for empty text node childs and removes them
  *
