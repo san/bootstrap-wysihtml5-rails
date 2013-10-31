@@ -8658,6 +8658,7 @@ wysihtml5.views.View = Base.extend(
       var hasTitle = target.hasAttribute("title");
       if(!hasTitle){
         title = titlePrefixes[nodeName] + (target.getAttribute("href") || target.getAttribute("src"));
+        title += (target.getAttribute("target") && target.getAttribute("target") == '_blank') ? ' will open in new window' : '';
         target.setAttribute("title", title);
       }
     });
